@@ -18,18 +18,22 @@ export function ProgressBar({ stream }: ProgressBarProps) {
 
   const percentComplete = (stream.streamed / stream.totalAmount) * 100;
   const endTime = new Date(stream.endTime);
+  const startTime = new Date(stream.startTime);
   const now = Date.now();
+  const totalDuration = endTime.getTime() - startTime.getTime();
+  const elapsed = now - startTime.getTime();
+  const timeRemainingPct = totalDuration > 0 ? ((totalDuration - elapsed) / totalDuration) * 100 : 0;
   const daysLeft = Math.ceil((endTime.getTime() - now) / (1000 * 60 * 60 * 24));
   const weeksLeft = Math.ceil(daysLeft / 7);
 
-  // Color logic: green < 50%, yellow 50-80%, red > 80%
-  const getProgressColor = (pct: number) => {
-    if (pct < 50) return "#34d399"; // green
-    if (pct < 80) return "#fbbf24"; // yellow/amber
-    return "#f87171"; // red
+  // Color logic based on TIME REMAINING (green > 50%, yellow 20-50%, red < 20%)
+  const getProgressColor = (timeRemainingPct: number) => {
+    if (timeRemainingPct > 50) return "#34d399"; // green — more than half time left
+    if (timeRemainingPct > 20) return "#fbbf24"; // yellow/amber — between 20-50% time left
+    return "#f87171"; // red — less than 20% time left
   };
 
-  const progressColor = getProgressColor(percentComplete);
+  const progressColor = getProgressColor(timeRemainingPct);
 
   // Time remaining display
   const timeRemaining =
@@ -61,26 +65,44 @@ export function ProgressBar({ stream }: ProgressBarProps) {
         </p>
       </div>
 
-      {/* Progress bar */}
-      <div className="relative mb-3 h-3 w-full overflow-hidden rounded-full bg-white/5">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${animatedPercent}%` }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          className="h-full rounded-full"
-          style={{
-            background: `linear-gradient(90deg, ${progressColor}, ${progressColor}88)`,
-            boxShadow: `0 0 12px ${progressColor}44`,
-          }}
-        />
-        {/* Glow overlay */}
-        <div
-          className="absolute inset-0 rounded-full opacity-20"
-          style={{
-            background: `linear-gradient(90deg, transparent 0%, ${progressColor} 50%, transparent 100%)`,
-            filter: "blur(4px)",
-          }}
-        />
+      {/* Progress bar with time-remaining label ON the bar */}
+      <div className="relative mb-3 h-8 w-full">
+        {/* Background track */}
+        <div className="absolute inset-0 overflow-hidden rounded-full bg-white/5">
+          {/* Filled portion */}
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${animatedPercent}%` }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="h-full rounded-full"
+            style={{
+              background: `linear-gradient(90deg, ${progressColor}, ${progressColor}88)`,
+              boxShadow: `0 0 12px ${progressColor}44`,
+            }}
+          />
+          {/* Glow overlay */}
+          <div
+            className="absolute inset-0 rounded-full opacity-20"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, ${progressColor} 50%, transparent 100%)`,
+              filter: "blur(4px)",
+            }}
+          />
+        </div>
+        {/* Time remaining label ON the bar */}
+        {stream.status === "active" && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span
+              className="font-body text-[10px] font-semibold uppercase tracking-wider"
+              style={{
+                color: animatedPercent > 40 ? "#0a0a14" : "rgba(255,255,255,0.7)",
+                textShadow: animatedPercent > 40 ? "none" : "0 0 4px rgba(0,0,0,0.5)",
+              }}
+            >
+              {timeRemaining} left
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Stats row */}

@@ -168,6 +168,9 @@ export function ViewStreamClient({ stream }: { stream: StreamData }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.05 }}
           className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl"
+          role="status"
+          aria-live="polite"
+          aria-label={`Total streamed: ${liveStream.streamed.toFixed(2)} ${liveStream.token}`}
         >
           <p className="font-body text-[10px] uppercase tracking-widest text-white/35">
             Total Streamed
@@ -185,8 +188,10 @@ export function ViewStreamClient({ stream }: { stream: StreamData }) {
           </div>
           {isActive && (
             <div className="mt-1 flex items-center gap-1.5 text-sm text-white/50">
-              <TrendingUp className="h-4 w-4" />
-              +{liveStream.ratePerSecond.toFixed(5)} {liveStream.token}/sec
+              <TrendingUp className="h-4 w-4" aria-hidden="true" />
+              <span aria-label={`${liveStream.ratePerSecond.toFixed(5)} ${liveStream.token} per second`}>
+                +{liveStream.ratePerSecond.toFixed(5)} {liveStream.token}/sec
+              </span>
             </div>
           )}
         </motion.div>
