@@ -119,7 +119,7 @@ pub struct SplitConfig {
 
 /// #922: Protocol-wide circuit-breaker state.
 #[contracttype]
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum ContractState {
     Active,
     Paused,
